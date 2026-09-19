@@ -1,0 +1,16 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CUBIC · Administrador</title><link rel="stylesheet" href="/admin/admin.css"></head><body>
+<header><div class="brand">CUBIC · Administrador</div><a class="btn" href="/" target="_blank">Ver tienda</a></header>
+<main>
+<section id="loginBox" class="panel auth"><h1>Acceso privado</h1><form id="login"><label>Email<input id="email" type="email" value="cubiccomunicacionvisual@gmail.com" required></label><label>Contraseña<input id="pass" type="password" required></label><button class="btn violet">Ingresar</button></form><p id="msg"></p></section>
+<section id="pending" class="panel hidden">Cuenta sin autorización.</section>
+<section id="adm" class="hidden">
+<div class="row"><div><h1>Catálogo CUBIC</h1><p class="muted">Gestión de productos, precios y logo</p></div><button id="logout" class="btn">Salir</button></div>
+
+<section class="panel"><h2>Logo de la web</h2><div class="logoBox"><img id="logoPreview" class="logoPreview" alt="Logo actual"><div><p class="muted">Podés cambiar el logo cuando quieras. Acepta JPG, PNG o WEBP y lo comprime automáticamente antes de guardarlo.</p><form id="logoForm"><label>Elegir nuevo logo<input id="logoFile" type="file" accept="image/jpeg,image/png,image/webp,image/*" required></label><button class="btn violet">Guardar nuevo logo</button></form><p id="logoMsg" class="ok"></p></div></div></section>
+
+<div class="grid2"><section class="panel"><h2>Instagram</h2><form id="igForm"><label>Perfil o enlace<input id="igInput"></label><button class="btn violet">Guardar Instagram</button></form></section>
+<section class="panel"><h2>Marcas</h2><form id="brandForm" class="inline"><input id="brandName" placeholder="Nueva marca" required><button class="btn violet">Agregar</button></form><div id="brandList"></div></section></div>
+
+<section class="panel"><h2 id="ft">Agregar producto</h2><p class="muted">Las imágenes se optimizan automáticamente antes de subirse.</p><form id="pf"><input id="pid" type="hidden"><div class="grid2"><label>Nombre<input id="pn" required></label><label>Marca<select id="ps" required></select></label></div><div class="grid2"><label>Precio minorista<input id="pp" type="number" min="0" required></label><label>Precio mayorista<input id="pw" type="number" min="0" required></label></div><label>Foto principal<input id="pi" type="file" accept="image/*"></label><label>Descripción<textarea id="pd"></textarea></label><div class="row"><b>Variantes por foto</b><button id="addV" type="button" class="btn">+ Variante</button></div><div id="vrows"></div><label class="check"><input id="pa" type="checkbox" checked> Mostrar producto</label><div class="inline"><button class="btn violet">Guardar producto</button><button id="clear" type="button" class="btn">Limpiar</button></div></form></section>
+<section class="panel"><h2>Productos</h2><div id="plist"></div></section>
+</section></main><script type="module" src="/admin/admin.js"></script></body></html>
