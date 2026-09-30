@@ -6,6 +6,27 @@
 <section id="adm" class="hidden">
 <div class="row"><div><h1>Catálogo CUBIC</h1><p class="muted">Gestión de productos, precios y logo</p></div><button id="logout" class="btn">Salir</button></div>
 
+<section class="panel analyticsPanel">
+  <div class="row"><div><h2>Estadísticas de la tienda</h2><p class="muted">Recuento anónimo de visitas al sitio.</p></div><button id="refreshStats" class="btn" type="button">Actualizar</button></div>
+  <div class="statsGrid">
+    <div class="statCard"><span>Hoy</span><strong id="statToday">0</strong><small>visitas</small></div>
+    <div class="statCard"><span>Total</span><strong id="statTotal">0</strong><small>visitas</small></div>
+    <div class="statCard"><span>Visitantes únicos</span><strong id="statUnique">0</strong><small>aprox.</small></div>
+    <div class="statCard"><span>Últimos 7 días</span><strong id="statWeek">0</strong><small>visitas</small></div>
+  </div>
+  <div class="analyticsSplit">
+    <div><h3>Últimos 7 días</h3><div id="dailyStats" class="dailyStats"></div></div>
+    <div><h3>Origen de las visitas</h3><div id="sourceStats" class="sourceStats"></div></div>
+  </div>
+  <div class="campaignLinks">
+    <b>Enlaces para medir campañas</b>
+    <p class="muted">Usá estos enlaces para saber si entraron desde Instagram o WhatsApp.</p>
+    <div class="campaignRow"><code id="instagramTrackLink"></code><button class="btn copyTrack" data-kind="instagram" type="button">Copiar Instagram</button></div>
+    <div class="campaignRow"><code id="whatsappTrackLink"></code><button class="btn copyTrack" data-kind="whatsapp" type="button">Copiar WhatsApp</button></div>
+  </div>
+</section>
+
+
 <section class="panel"><h2>Logo de la web</h2><div class="logoBox"><img id="logoPreview" class="logoPreview" alt="Logo actual"><div><p class="muted">Podés cambiar el logo cuando quieras. Acepta JPG, PNG o WEBP y lo comprime automáticamente antes de guardarlo.</p><form id="logoForm"><label>Elegir nuevo logo<input id="logoFile" type="file" accept="image/jpeg,image/png,image/webp,image/*" required></label><button class="btn violet">Guardar nuevo logo</button></form><p id="logoMsg" class="ok"></p></div></div></section>
 
 <div class="grid2"><section class="panel"><h2>Instagram</h2><form id="igForm"><label>Perfil o enlace<input id="igInput"></label><button class="btn violet">Guardar Instagram</button></form></section>
