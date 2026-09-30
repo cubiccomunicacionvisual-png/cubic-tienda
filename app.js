@@ -7,6 +7,41 @@ function norm(v){v=(v||"").trim();if(!v)return"https://instagram.com/";if(v.star
 function setLogo(url){const img=$("#siteLogo"),fb=$("#logoFallback");if(url){img.src=url;img.hidden=false;fb.hidden=true;img.onerror=()=>{img.hidden=true;fb.hidden=false}}else{img.hidden=true;fb.hidden=false}}
 function openZoom(src){if(!src)return;$("#zoomImg").src=src;$("#lightbox").classList.add("open")}function closeZoom(){$("#lightbox").classList.remove("open");$("#zoomImg").src=""}
 function openCart(){$("#shade").classList.add("open")}
+
+function getVisitorId(){
+ let id=localStorage.getItem("cubic_visitor_id");
+ if(!id){id=crypto.randomUUID();localStorage.setItem("cubic_visitor_id",id)}
+ return id
+}
+function detectSource(){
+ const url=new URL(location.href),explicit=url.searchParams.get("ref");
+ if(explicit){
+   const clean=explicit.trim().slice(0,80)||"Directo";
+   sessionStorage.setItem("cubic_ref",clean);
+   return clean
+ }
+ const saved=sessionStorage.getItem("cubic_ref");
+ if(saved)return saved;
+ try{
+   const host=new URL(document.referrer).hostname.toLowerCase();
+   if(!host)return"Directo";
+   if(host.includes("instagram"))return"Instagram";
+   if(host.includes("whatsapp")||host.includes("wa.me"))return"WhatsApp";
+   if(host.includes("facebook")||host.includes("fb.com"))return"Facebook";
+   if(host.includes("google"))return"Google";
+   return host.slice(0,80)
+ }catch{return"Directo"}
+}
+async function trackVisit(){
+ try{
+   await sb.from("page_visits").insert({
+     visitor_id:getVisitorId(),
+     source:detectSource(),
+     path:(location.pathname+location.search).slice(0,300)
+   })
+ }catch{}
+}
+
 function catLabel(c){return c.slug==="graficas-de-motos"?"GRÁFICAS SIMIL ORIGINALES":String(c.name||"").toUpperCase()}
 function updateHero(){
  const c=cats.find(x=>x.id===selectedCat),s=subs.find(x=>x.id===selectedSub);
@@ -79,4 +114,4 @@ function render(){
 }
 function add(pid,vid){const k=pid+"::"+vid,x=cart.find(i=>i.k===k);x?x.n++:cart.push({k,pid,vid,n:1});cartRender();const f=$("#floatingCart");f.classList.remove("hasItems");void f.offsetWidth;f.classList.add("hasItems")}
 function cartRender(){const q=qty(),wh=isWholesale();$("#cc").textContent=q;$("#fcc").textContent=q;const float=$("#floatingCart");float.setAttribute("aria-label",q?("Abrir carrito, "+q+" productos"):"Abrir carrito");const st=$("#cartStatus");st.className="cartStatus "+(wh?"wholesaleMode":"retailMode");st.innerHTML=wh?'<b>Precio mayorista activado</b><br><span class="muted">Tenés '+q+' unidades en el carrito.</span>':'<b>Precio minorista</b><br><span class="muted">Agregá '+(10-q)+' unidad'+(10-q===1?"":"es")+' más para acceder al precio mayorista.</span>';const box=$("#items");box.innerHTML=cart.length?"":"<p class='muted'>Todavía no agregaste productos.</p>";for(const i of cart){const p=prods.find(x=>x.id===i.pid),v=vars.find(x=>x.id===i.vid),u=unitPrice(p),d=document.createElement("div");d.className="cartItem";d.innerHTML='<img src="'+esc(v?.image_url||p?.main_image_url||"")+'"><div><b>'+esc(p?.name)+'</b><div class="muted">'+esc(v?.name||"")+'</div><div class="smallNote">'+(wh?"Mayorista":"Minorista")+': '+money(u)+' c/u</div><div class="qty"><button data-d="-1">−</button><span>'+i.n+'</span><button data-d="1">+</button></div></div><b>'+money(u*i.n)+'</b>';d.querySelectorAll("[data-d]").forEach(b=>b.onclick=()=>{i.n+=Number(b.dataset.d);if(i.n<=0)cart=cart.filter(x=>x.k!==i.k);cartRender()});box.appendChild(d)}const t=cart.reduce((a,i)=>a+unitPrice(prods.find(p=>p.id===i.pid))*i.n,0);$("#total").textContent=money(t);const lines=["Hola CUBIC, quiero realizar este pedido:","",wh?"PRECIO MAYORISTA APLICADO (10+ unidades)":"PRECIO MINORISTA",""];for(const i of cart){const p=prods.find(x=>x.id===i.pid),v=vars.find(x=>x.id===i.vid),u=unitPrice(p);lines.push(i.n+" × "+p.name+" — "+money(u)+" c/u");if(v)lines.push("Variante: "+v.name);lines.push("Subtotal: "+money(u*i.n),"")}lines.push("Cantidad total: "+q+" unidades","TOTAL: "+money(t));$("#send").href=cart.length?"https://wa.me/"+WA+"?text="+encodeURIComponent(lines.join("\n")):"#";$("#send").style.pointerEvents=cart.length?"auto":"none";$("#send").style.opacity=cart.length?"1":".5"}
-$("#q").oninput=render;$("#cartBtn").onclick=openCart;$("#floatingCart").onclick=openCart;$("#close").onclick=()=>$("#shade").classList.remove("open");$("#shade").onclick=e=>{if(e.target===$("#shade"))$("#shade").classList.remove("open")};$("#catToggle").onclick=()=>$("#catAside").classList.toggle("open");$("#zoomClose").onclick=closeZoom;$("#lightbox").onclick=e=>{if(e.target===$("#lightbox"))closeZoom()};document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeZoom();$("#shade").classList.remove("open")}});load();
+$("#q").oninput=render;$("#cartBtn").onclick=openCart;$("#floatingCart").onclick=openCart;$("#close").onclick=()=>$("#shade").classList.remove("open");$("#shade").onclick=e=>{if(e.target===$("#shade"))$("#shade").classList.remove("open")};$("#catToggle").onclick=()=>$("#catAside").classList.toggle("open");$("#zoomClose").onclick=closeZoom;$("#lightbox").onclick=e=>{if(e.target===$("#lightbox"))closeZoom()};document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeZoom();$("#shade").classList.remove("open")}});trackVisit();load();
