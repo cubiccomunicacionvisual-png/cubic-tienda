@@ -27,8 +27,54 @@ async function load(){
  const options=cats.map(c=>'<option value="'+c.id+'">'+esc(catLabel(c))+'</option>').join("");
  $("#subcatParent").innerHTML=options;$("#pcat").innerHTML=options;
  if(!$("#pcat").value&&cats[0])$("#pcat").value=cats[0].id;
- updateProductSubcats();renderSubcatList();renderProducts()
+ updateProductSubcats();renderSubcatList();renderProducts();loadAnalytics()
 }
+
+function formatDay(iso){
+ const d=new Date(iso+"T12:00:00");
+ return new Intl.DateTimeFormat("es-AR",{weekday:"short",day:"2-digit"}).format(d)
+}
+function renderAnalytics(data){
+ $("#statToday").textContent=data.today_visits??0;
+ $("#statTotal").textContent=data.total_visits??0;
+ $("#statUnique").textContent=data.unique_visitors??0;
+ $("#statWeek").textContent=data.last_7_days??0;
+
+ const daily=Array.isArray(data.daily)?data.daily:[];
+ const max=Math.max(1,...daily.map(x=>Number(x.count)||0));
+ $("#dailyStats").innerHTML=daily.length?daily.map(x=>{
+   const n=Number(x.count)||0,p=Math.round(n/max*100);
+   return '<div class="dailyRow"><span>'+esc(formatDay(x.date))+'</span><div class="barTrack"><div class="barFill" style="width:'+p+'%"></div></div><b>'+n+'</b></div>'
+ }).join(""):'<p class="muted">Todavía no hay datos.</p>';
+
+ const sources=Array.isArray(data.sources)?data.sources:[];
+ $("#sourceStats").innerHTML=sources.length?sources.slice(0,10).map(x=>
+   '<div class="sourceRow"><span>'+esc(x.source||"Directo")+'</span><b>'+Number(x.count||0)+'</b></div>'
+ ).join(""):'<p class="muted">Todavía no hay datos.</p>';
+}
+async function loadAnalytics(){
+ try{
+   const r=await sb.rpc("get_admin_visit_stats");
+   if(r.error)throw r.error;
+   renderAnalytics(r.data||{});
+ }catch(err){
+   console.error(err);
+   $("#dailyStats").innerHTML='<p class="muted">No se pudieron cargar las estadísticas.</p>';
+ }
+ const base=location.origin+"/";
+ const ig=base+"?ref=instagram",wa=base+"?ref=whatsapp";
+ $("#instagramTrackLink").textContent=ig;
+ $("#whatsappTrackLink").textContent=wa;
+}
+$("#refreshStats").onclick=loadAnalytics;
+document.querySelectorAll(".copyTrack").forEach(b=>b.onclick=async()=>{
+ const link=b.dataset.kind==="instagram"?$("#instagramTrackLink").textContent:$("#whatsappTrackLink").textContent;
+ try{
+   await navigator.clipboard.writeText(link);
+   const old=b.textContent;b.textContent="Copiado ✓";setTimeout(()=>b.textContent=old,1200)
+ }catch{prompt("Copiá este enlace:",link)}
+});
+
 $("#logoFile").onchange=e=>{const f=e.target.files[0];if(f)$("#logoPreview").src=URL.createObjectURL(f)};
 $("#logoForm").onsubmit=async e=>{e.preventDefault();const b=e.submitter,old=b.textContent;try{b.disabled=true;b.textContent="Comprimiendo y guardando...";const f=$("#logoFile").files[0],url=await upload(f,"logo-");const r=await sb.from("site_settings").upsert({key:"logo_url",value:url,updated_at:new Date().toISOString()});if(r.error)throw r.error;$("#logoPreview").src=url;$("#logoMsg").textContent="Logo actualizado. La tienda lo toma automáticamente.";$("#logoFile").value=""}catch(err){alert(err.message||err)}finally{b.disabled=false;b.textContent=old}};
 $("#igForm").onsubmit=async e=>{e.preventDefault();const r=await sb.from("site_settings").upsert({key:"instagram_url",value:$("#igInput").value.trim(),updated_at:new Date().toISOString()});alert(r.error?r.error.message:"Instagram guardado.")};
