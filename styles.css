@@ -23,3 +23,9 @@ main{padding:26px}.hero{border:1px solid #392b50;background:radial-gradient(circ
 .catalogMain .arrow{transition:transform .2s ease}.catalogSection.open .catalogMain .arrow{transform:rotate(180deg)}
 .catalogSubs{display:none;padding:8px}.catalogSection.open .catalogSubs{display:block}
 .catalogSubs .nav{margin:5px 0}.catalogEmpty{padding:10px;color:#777;font-size:12px}
+
+/* Banner principal CUBIC */
+.hero.heroImage{padding:0;overflow:hidden;background:#09090d}
+.heroImage>img{display:block;width:100%;height:auto;aspect-ratio:1916/821;object-fit:contain}
+.heroLegacy{display:none!important}
+@media(max-width:520px){.hero.heroImage{padding:0}}
