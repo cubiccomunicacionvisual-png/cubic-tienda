@@ -32,3 +32,23 @@ main{padding:26px}.hero{border:1px solid #392b50;background:radial-gradient(circ
 
 .categoryPriceStatus{display:grid;gap:7px;margin-top:10px}.categoryPriceStatus>div{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:8px;padding:8px 9px;border:1px solid #ffffff18;border-radius:9px;background:#0e0e14}.categoryPriceStatus span{font-size:11px;font-weight:900}.categoryPriceStatus strong{font-size:10px;padding:4px 7px;border-radius:999px;white-space:nowrap}.categoryPriceStatus em{font-size:11px;color:#aaa9b6;font-style:normal}.catWh{background:#5b21b6;color:#fff}.catRetail{background:#332711;color:#f3d59a}
 @media(max-width:520px){.categoryPriceStatus>div{grid-template-columns:1fr auto}.categoryPriceStatus em{grid-column:1/-1}}
+
+/* Iconos de WhatsApp e Instagram */
+.socialBtn{display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.socialIcon{width:20px;height:20px;flex:0 0 20px;fill:currentColor}
+
+/* Banner móvil: se muestra arriba del aviso mayorista */
+.mobileHeroBanner{display:none}
+.mobileHeroBanner img{display:block;width:100%;height:auto;aspect-ratio:1916/821;object-fit:contain}
+
+@media(max-width:900px){
+  .mobileHeroBanner{display:block;padding:15px 14px 0;background:var(--bg)}
+  .mobileHeroBanner img{border:1px solid #392b50;border-radius:18px;overflow:hidden}
+  main .heroImage{display:none}
+  main{padding-top:10px}
+  .social .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px}
+}
+
+@media(max-width:520px){
+  .socialIcon{width:22px;height:22px;flex-basis:22px}
+}
