@@ -50,7 +50,7 @@ function updateHero(){
    $("#heroTitle").textContent=s?s.name:"Gráficas de motos simil originales";
    $("#heroSubtitle").textContent=s?"Explorá los modelos disponibles de "+s.name+".":"Elegí tu modelo y variante. Trabajamos a pedido.";
    $("#heroExtra").textContent="Si no encontrás el modelo que buscás, no dudes en consultarnos.";
-   $("#heroBadge").textContent="10 o más gráficas = precio mayorista";
+   $("#heroBadge").textContent="10 o más gráficas = precio mayorista en gráficas";
  }else if(c.slug==="remeras"){
    $("#heroTitle").textContent=s?s.name:"Remeras";
    $("#heroSubtitle").textContent=s?"Mirá los diseños disponibles en "+s.name+".":"Elegí la categoría y el diseño que buscás. Trabajamos a pedido.";
@@ -106,12 +106,61 @@ function render(){
  if(!list.length){box.innerHTML='<div class="empty">Todavía no hay productos cargados en esta sección.</div>';return}
  for(const p of list){
    const pv=vars.filter(v=>v.product_id===p.id),first=pv[0],wh=p.wholesale_price??p.price,el=document.createElement("article");el.className="card";el.dataset.v=first?.id||"";
-   el.innerHTML='<div class="pic"><img loading="lazy" src="'+esc(first?.image_url||p.main_image_url||"")+'" alt="'+esc(p.name)+'"><span class="zoomHint">Tocá para ampliar</span></div><div class="body"><h3>'+esc(p.name)+'</h3><div class="muted">'+esc(subs.find(s=>s.id===p.subcategory_id)?.name||cats.find(c=>c.id===p.category_id)?.name||"")+'</div>'+(pv.length?'<div class="variants">'+pv.map((v,i)=>'<button class="variant '+(i?"":"on")+'" data-id="'+v.id+'" data-img="'+esc(v.image_url||p.main_image_url||"")+'">'+esc(v.name)+'</button>').join("")+'</div>':"")+'<div class="priceBlock"><div class="retail">Minorista: '+money(p.price)+'</div><div class="wholesale">Mayorista: '+money(wh)+'</div><div class="smallNote">Precio mayorista desde 10 unidades totales en el carrito.</div></div><button class="btn violet add">Agregar al carrito</button></div>';
+   el.innerHTML='<div class="pic"><img loading="lazy" src="'+esc(first?.image_url||p.main_image_url||"")+'" alt="'+esc(p.name)+'"><span class="zoomHint">Tocá para ampliar</span></div><div class="body"><h3>'+esc(p.name)+'</h3><div class="muted">'+esc(subs.find(s=>s.id===p.subcategory_id)?.name||cats.find(c=>c.id===p.category_id)?.name||"")+'</div>'+(pv.length?'<div class="variants">'+pv.map((v,i)=>'<button class="variant '+(i?"":"on")+'" data-id="'+v.id+'" data-img="'+esc(v.image_url||p.main_image_url||"")+'">'+esc(v.name)+'</button>').join("")+'</div>':"")+'<div class="priceBlock"><div class="retail">Minorista: '+money(p.price)+'</div><div class="wholesale">Mayorista: '+money(wh)+'</div><div class="smallNote">Precio mayorista desde 10 unidades dentro de esta categoría.</div></div><button class="btn violet add">Agregar al carrito</button></div>';
    const img=el.querySelector(".pic img");el.querySelector(".pic").onclick=()=>openZoom(img.src);
    el.querySelectorAll(".variant").forEach(b=>b.onclick=e=>{e.stopPropagation();el.querySelectorAll(".variant").forEach(x=>x.classList.remove("on"));b.classList.add("on");el.dataset.v=b.dataset.id;img.src=b.dataset.img});
    el.querySelector(".add").onclick=()=>add(p.id,el.dataset.v);box.appendChild(el)
  }
 }
 function add(pid,vid){const k=pid+"::"+vid,x=cart.find(i=>i.k===k);x?x.n++:cart.push({k,pid,vid,n:1});cartRender();const f=$("#floatingCart");f.classList.remove("hasItems");void f.offsetWidth;f.classList.add("hasItems")}
-function cartRender(){const q=qty(),wh=isWholesale();$("#cc").textContent=q;$("#fcc").textContent=q;const float=$("#floatingCart");float.setAttribute("aria-label",q?("Abrir carrito, "+q+" productos"):"Abrir carrito");const st=$("#cartStatus");st.className="cartStatus "+(wh?"wholesaleMode":"retailMode");st.innerHTML=wh?'<b>Precio mayorista activado</b><br><span class="muted">Tenés '+q+' unidades en el carrito.</span>':'<b>Precio minorista</b><br><span class="muted">Agregá '+(10-q)+' unidad'+(10-q===1?"":"es")+' más para acceder al precio mayorista.</span>';const box=$("#items");box.innerHTML=cart.length?"":"<p class='muted'>Todavía no agregaste productos.</p>";for(const i of cart){const p=prods.find(x=>x.id===i.pid),v=vars.find(x=>x.id===i.vid),u=unitPrice(p),d=document.createElement("div");d.className="cartItem";d.innerHTML='<img src="'+esc(v?.image_url||p?.main_image_url||"")+'"><div><b>'+esc(p?.name)+'</b><div class="muted">'+esc(v?.name||"")+'</div><div class="smallNote">'+(wh?"Mayorista":"Minorista")+': '+money(u)+' c/u</div><div class="qty"><button data-d="-1">−</button><span>'+i.n+'</span><button data-d="1">+</button></div></div><b>'+money(u*i.n)+'</b>';d.querySelectorAll("[data-d]").forEach(b=>b.onclick=()=>{i.n+=Number(b.dataset.d);if(i.n<=0)cart=cart.filter(x=>x.k!==i.k);cartRender()});box.appendChild(d)}const t=cart.reduce((a,i)=>a+unitPrice(prods.find(p=>p.id===i.pid))*i.n,0);$("#total").textContent=money(t);const lines=["Hola CUBIC, quiero realizar este pedido:","",wh?"PRECIO MAYORISTA APLICADO (10+ unidades)":"PRECIO MINORISTA",""];for(const i of cart){const p=prods.find(x=>x.id===i.pid),v=vars.find(x=>x.id===i.vid),u=unitPrice(p);lines.push(i.n+" × "+p.name+" — "+money(u)+" c/u");if(v)lines.push("Variante: "+v.name);lines.push("Subtotal: "+money(u*i.n),"")}lines.push("Cantidad total: "+q+" unidades","TOTAL: "+money(t));$("#send").href=cart.length?"https://wa.me/"+WA+"?text="+encodeURIComponent(lines.join("\n")):"#";$("#send").style.pointerEvents=cart.length?"auto":"none";$("#send").style.opacity=cart.length?"1":".5"}
+function cartRender(){
+ const q=qty();
+ $("#cc").textContent=q;$("#fcc").textContent=q;
+ const float=$("#floatingCart");
+ float.setAttribute("aria-label",q?("Abrir carrito, "+q+" productos"):"Abrir carrito");
+
+ const catStates=cats.map(c=>({cat:c,n:categoryQty(c.id)})).filter(x=>x.n>0);
+ const anyWholesale=catStates.some(x=>x.n>=10);
+ const st=$("#cartStatus");
+ st.className="cartStatus "+(anyWholesale?"wholesaleMode":"retailMode");
+ if(!catStates.length){
+   st.innerHTML='<b>Precio minorista</b><br><span class="muted">El precio mayorista se activa por categoría al llegar a 10 unidades de esa misma categoría.</span>';
+ }else{
+   st.innerHTML='<b>Precios por categoría</b><br><span class="muted">Cada categoría llega al mayorista por separado.</span><div class="categoryPriceStatus">'+catStates.map(x=>{
+     const name=catLabel(x.cat),wh=x.n>=10,left=Math.max(0,10-x.n);
+     return '<div><span>'+esc(name)+'</span><strong class="'+(wh?'catWh':'catRetail')+'">'+(wh?'MAYORISTA':('MINORISTA · faltan '+left))+'</strong><em>'+x.n+' u.</em></div>'
+   }).join("")+'</div>';
+ }
+
+ const box=$("#items");
+ box.innerHTML=cart.length?"":"<p class='muted'>Todavía no agregaste productos.</p>";
+ for(const i of cart){
+   const p=prods.find(x=>x.id===i.pid),v=vars.find(x=>x.id===i.vid),wh=isWholesaleFor(p),u=unitPrice(p),d=document.createElement("div");
+   d.className="cartItem";
+   d.innerHTML='<img src="'+esc(v?.image_url||p?.main_image_url||"")+'"><div><b>'+esc(p?.name)+'</b><div class="muted">'+esc(v?.name||"")+'</div><div class="smallNote">'+(wh?"Mayorista":"Minorista")+': '+money(u)+' c/u</div><div class="qty"><button data-d="-1">−</button><span>'+i.n+'</span><button data-d="1">+</button></div></div><b>'+money(u*i.n)+'</b>';
+   d.querySelectorAll("[data-d]").forEach(b=>b.onclick=()=>{i.n+=Number(b.dataset.d);if(i.n<=0)cart=cart.filter(x=>x.k!==i.k);cartRender()});
+   box.appendChild(d)
+ }
+
+ const t=cart.reduce((a,i)=>a+unitPrice(prods.find(p=>p.id===i.pid))*i.n,0);
+ $("#total").textContent=money(t);
+
+ const lines=["Hola CUBIC, quiero realizar este pedido:","","PRECIOS CALCULADOS POR CATEGORÍA","Mayorista desde 10 unidades de la misma categoría.",""];
+ for(const state of catStates){
+   const wh=state.n>=10;
+   lines.push(catLabel(state.cat)+" — "+state.n+" unidades — "+(wh?"PRECIO MAYORISTA":"PRECIO MINORISTA"),"");
+   for(const i of cart){
+     const p=prods.find(x=>x.id===i.pid);
+     if(!p||p.category_id!==state.cat.id)continue;
+     const v=vars.find(x=>x.id===i.vid),u=unitPrice(p);
+     lines.push(i.n+" × "+p.name+" — "+money(u)+" c/u");
+     if(v)lines.push("Variante: "+v.name);
+     lines.push("Subtotal: "+money(u*i.n),"")
+   }
+ }
+ lines.push("Cantidad total: "+q+" unidades","TOTAL: "+money(t));
+ $("#send").href=cart.length?"https://wa.me/"+WA+"?text="+encodeURIComponent(lines.join("\n")):"#";
+ $("#send").style.pointerEvents=cart.length?"auto":"none";
+ $("#send").style.opacity=cart.length?"1":".5"
+}
 $("#q").oninput=render;$("#cartBtn").onclick=openCart;$("#floatingCart").onclick=openCart;$("#close").onclick=()=>$("#shade").classList.remove("open");$("#shade").onclick=e=>{if(e.target===$("#shade"))$("#shade").classList.remove("open")};$("#catToggle").onclick=()=>$("#catAside").classList.toggle("open");$("#zoomClose").onclick=closeZoom;$("#lightbox").onclick=e=>{if(e.target===$("#lightbox"))closeZoom()};document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeZoom();$("#shade").classList.remove("open")}});trackVisit();load();
