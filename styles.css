@@ -29,3 +29,6 @@ main{padding:26px}.hero{border:1px solid #392b50;background:radial-gradient(circ
 .heroImage>img{display:block;width:100%;height:auto;aspect-ratio:1916/821;object-fit:contain}
 .heroLegacy{display:none!important}
 @media(max-width:520px){.hero.heroImage{padding:0}}
+
+.categoryPriceStatus{display:grid;gap:7px;margin-top:10px}.categoryPriceStatus>div{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:8px;padding:8px 9px;border:1px solid #ffffff18;border-radius:9px;background:#0e0e14}.categoryPriceStatus span{font-size:11px;font-weight:900}.categoryPriceStatus strong{font-size:10px;padding:4px 7px;border-radius:999px;white-space:nowrap}.categoryPriceStatus em{font-size:11px;color:#aaa9b6;font-style:normal}.catWh{background:#5b21b6;color:#fff}.catRetail{background:#332711;color:#f3d59a}
+@media(max-width:520px){.categoryPriceStatus>div{grid-template-columns:1fr auto}.categoryPriceStatus em{grid-column:1/-1}}
