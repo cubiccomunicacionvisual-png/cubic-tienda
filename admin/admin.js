@@ -91,7 +91,35 @@ $("#subcatForm").onsubmit=async e=>{
 };
 function renderSubcatList(){
  const box=$("#subcatList");box.innerHTML="";
- cats.forEach(c=>{const group=document.createElement("div"),list=subs.filter(s=>s.category_id===c.id);group.className="subcatGroup";group.innerHTML='<div class="subcatGroupTitle">'+esc(catLabel(c))+'</div>'+(list.length?list.map(s=>'<span class="subcatChip">'+esc(s.name)+'</span>').join(""):'<span class="muted">Sin categorías todavía.</span>');box.appendChild(group)})
+ cats.forEach(c=>{
+   const group=document.createElement("div"),list=subs.filter(s=>s.category_id===c.id);
+   group.className="subcatGroup";
+   group.innerHTML='<div class="subcatGroupTitle">'+esc(catLabel(c))+'</div>';
+   if(!list.length){
+     group.innerHTML+='<span class="muted">Sin categorías todavía.</span>';
+   }else{
+     list.forEach(s=>{
+       const row=document.createElement("div");
+       const productCount=prods.filter(p=>p.subcategory_id===s.id).length;
+       row.className="subcatEditRow";
+       row.innerHTML='<div class="subcatEditInfo"><b>'+esc(s.name)+'</b><span>'+productCount+' producto'+(productCount===1?"":"s")+'</span></div><button type="button" class="btn editSubcat">Cambiar nombre</button>';
+       row.querySelector(".editSubcat").onclick=()=>editSubcategoryName(s);
+       group.appendChild(row)
+     })
+   }
+   box.appendChild(group)
+ })
+}
+async function editSubcategoryName(s){
+ const newName=prompt("Nuevo nombre para la categoría:",s.name);
+ if(newName===null)return;
+ const name=newName.trim();
+ if(!name)return alert("El nombre no puede quedar vacío.");
+ if(name===s.name)return;
+ const r=await sb.from("subcategories").update({name}).eq("id",s.id);
+ if(r.error)return alert(r.error.message);
+ await load();
+ alert("Categoría actualizada. Los productos siguen dentro de la misma categoría.")
 }
 function updateProductSubcats(selectedId=null){
  const catId=$("#pcat").value,list=subs.filter(s=>s.category_id===catId);
