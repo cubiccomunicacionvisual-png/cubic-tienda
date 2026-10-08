@@ -1,7 +1,7 @@
 import{createClient}from"https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 const sb=createClient("https://bbwbaohkbxsjumkfknqn.supabase.co","sb_publishable_5mdYxS9nGFb3DoxbdsdiAg_dOCOnTP5"),WA="5493743512413",$=s=>document.querySelector(s);
 let cats=[],subs=[],prods=[],vars=[],selectedCat=null,selectedSub=null,openCats=new Set(),cart=[];
-const money=n=>new Intl.NumberFormat("es-AR",{style:"currency",currency:"ARS",maximumFractionDigits:0}).format(Number(n)||0),esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])),qty=()=>cart.reduce((a,x)=>a+x.n,0),isWholesale=()=>qty()>=10,unitPrice=p=>Number(isWholesale()?(p.wholesale_price??p.price):p.price)||0;
+const money=n=>new Intl.NumberFormat("es-AR",{style:"currency",currency:"ARS",maximumFractionDigits:0}).format(Number(n)||0),esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])),qty=()=>cart.reduce((a,x)=>a+x.n,0),categoryQty=catId=>cart.reduce((a,i)=>{const p=prods.find(x=>x.id===i.pid);return a+(p?.category_id===catId?i.n:0)},0),isWholesaleFor=p=>!!p&&categoryQty(p.category_id)>=10,unitPrice=p=>Number(isWholesaleFor(p)?(p.wholesale_price??p.price):p.price)||0;
 $("#wa").href="https://wa.me/"+WA+"?text="+encodeURIComponent("Hola CUBIC, quería hacer una consulta.");
 function norm(v){v=(v||"").trim();if(!v)return"https://instagram.com/";if(v.startsWith("http"))return v;if(v.startsWith("@"))v=v.slice(1);return"https://instagram.com/"+v.replace(/^\/+|\/+$/g,"")}
 function setLogo(url){const img=$("#siteLogo"),fb=$("#logoFallback");if(url){img.src=url;img.hidden=false;fb.hidden=true;img.onerror=()=>{img.hidden=true;fb.hidden=false}}else{img.hidden=true;fb.hidden=false}}
