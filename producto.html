@@ -1,0 +1,33 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Producto · CUBIC</title><link rel="stylesheet" href="/producto.css"></head><body>
+<div class="ship">ENVÍOS A TODA LA PROVINCIA</div>
+<header class="siteHeader">
+  <a href="/" class="logo"><img id="siteLogo" alt="CUBIC" hidden><span id="logoFallback">CUBIC</span></a>
+  <div class="headerActions"><a id="wa" class="btn green" target="_blank">WhatsApp</a><a id="ig" class="btn ig" target="_blank">Instagram</a></div>
+</header>
+<main class="productPage">
+  <a class="back" href="/">← Volver al catálogo</a>
+  <section id="loading" class="state">Cargando producto...</section>
+  <section id="notFound" class="state hidden">No encontramos este producto. <a href="/">Volver a la tienda</a></section>
+  <article id="productDetail" class="productDetail hidden">
+    <div class="gallery">
+      <button id="mainPic" class="mainPic" type="button" aria-label="Ampliar imagen"><img id="productImg" alt=""></button>
+      <div id="variantThumbs" class="variantThumbs"></div>
+    </div>
+    <div class="info">
+      <div id="categoryName" class="category"></div>
+      <h1 id="productName"></h1>
+      <p id="productDesc" class="description"></p>
+      <div class="prices">
+        <div><span>Minorista</span><strong id="retailPrice"></strong></div>
+        <div class="wh"><span>Mayorista</span><strong id="wholesalePrice"></strong></div>
+      </div>
+      <p class="wholesaleNote">Precio mayorista desde 10 unidades dentro de la misma categoría.</p>
+      <div id="variantChoice" class="variantChoice hidden"><b>Elegí una variante</b><div id="variantButtons"></div></div>
+      <div class="qtyBlock"><b>Cantidad</b><div class="qtyControl"><button id="minus" type="button">−</button><span id="quantity">1</span><button id="plus" type="button">+</button></div></div>
+      <div id="priceMode" class="priceMode"></div>
+      <a id="orderBtn" class="orderBtn" target="_blank">Pedir este producto por WhatsApp</a>
+    </div>
+  </article>
+</main>
+<div id="lightbox" class="lightbox"><button id="zoomClose" type="button">×</button><img id="zoomImg" alt="Vista ampliada"></div>
+<script type="module" src="/producto.js"></script></body></html>
