@@ -1,6 +1,6 @@
 import{createClient}from"https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 const sb=createClient("https://bbwbaohkbxsjumkfknqn.supabase.co","sb_publishable_5mdYxS9nGFb3DoxbdsdiAg_dOCOnTP5"),WA="5493743512413",$=s=>document.querySelector(s);
-let cats=[],subs=[],prods=[],vars=[],selectedCat=null,selectedSub=null,openCats=new Set(),cart=[];
+let cats=[],subs=[],prods=[],vars=[],banners=[],selectedCat=null,selectedSub=null,openCats=new Set(),cart=[];
 const money=n=>new Intl.NumberFormat("es-AR",{style:"currency",currency:"ARS",maximumFractionDigits:0}).format(Number(n)||0),esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])),qty=()=>cart.reduce((a,x)=>a+x.n,0),categoryQty=catId=>cart.reduce((a,i)=>{const p=prods.find(x=>x.id===i.pid);return a+(p?.category_id===catId?i.n:0)},0),isWholesaleFor=p=>!!p&&categoryQty(p.category_id)>=10,unitPrice=p=>Number(isWholesaleFor(p)?(p.wholesale_price??p.price):p.price)||0;
 $("#wa").href="https://wa.me/"+WA+"?text="+encodeURIComponent("Hola CUBIC, quería hacer una consulta.");
 function norm(v){v=(v||"").trim();if(!v)return"https://instagram.com/";if(v.startsWith("http"))return v;if(v.startsWith("@"))v=v.slice(1);return"https://instagram.com/"+v.replace(/^\/+|\/+$/g,"")}
@@ -77,7 +77,37 @@ async function load(){
  setLogo(s.find(x=>x.key==="logo_url")?.value||"");
  const preferred=cats.find(x=>x.slug==="graficas-de-motos")||cats[0];
  if(!selectedCat&&preferred){selectedCat=preferred.id;openCats.add(preferred.id)}
- renderNav();updateHero();render();cartRender()
+ renderBanners();renderNav();updateHero();render();cartRender()
+}
+function renderBanners(){
+ const list=banners.length?banners:[{id:"fallback",image_url:"/assets/cubic-banner-home.webp",product_id:null,title:"CUBIC"}];
+ document.querySelectorAll("[data-banner-slider]").forEach(root=>{
+   const viewport=root.querySelector(".bannerViewport");
+   if(!viewport)return;
+   viewport.innerHTML='<div class="bannerTrack">'+list.map((b,i)=>'<div class="bannerSlide'+(b.product_id?' clickable':'')+'" data-i="'+i+'" data-product="'+esc(b.product_id||"")+'"><img src="'+esc(b.image_url)+'" alt="'+esc(b.title||"Promoción CUBIC")+'" '+(i===0?'fetchpriority="high"':'loading="lazy"')+'></div>').join("")+'</div>'+
+   (list.length>1?'<button class="bannerArrow bannerPrev" type="button" aria-label="Banner anterior">‹</button><button class="bannerArrow bannerNext" type="button" aria-label="Banner siguiente">›</button><div class="bannerDots">'+list.map((_,i)=>'<button type="button" class="bannerDot'+(i===0?' on':'')+'" data-i="'+i+'" aria-label="Ir al banner '+(i+1)+'"></button>').join("")+'</div>':"");
+   initBannerSlider(viewport,list.length)
+ })
+}
+function initBannerSlider(viewport,count){
+ const track=viewport.querySelector(".bannerTrack");if(!track)return;
+ let current=0,timer=null,startX=null;
+ const dots=[...viewport.querySelectorAll(".bannerDot")];
+ const go=i=>{
+   current=(i+count)%count;track.style.transform="translateX(-"+(current*100)+"%)";
+   dots.forEach((d,n)=>d.classList.toggle("on",n===current))
+ };
+ const auto=()=>{clearInterval(timer);if(count>1)timer=setInterval(()=>go(current+1),5000)};
+ viewport.querySelector(".bannerPrev")?.addEventListener("click",e=>{e.stopPropagation();go(current-1);auto()});
+ viewport.querySelector(".bannerNext")?.addEventListener("click",e=>{e.stopPropagation();go(current+1);auto()});
+ dots.forEach(d=>d.onclick=e=>{e.stopPropagation();go(Number(d.dataset.i));auto()});
+ viewport.querySelectorAll(".bannerSlide").forEach(slide=>slide.onclick=()=>{
+   const pid=slide.dataset.product;if(pid)location.href="/producto.html?id="+encodeURIComponent(pid)
+ });
+ viewport.addEventListener("touchstart",e=>{startX=e.touches[0]?.clientX??null},{passive:true});
+ viewport.addEventListener("touchend",e=>{if(startX===null)return;const end=e.changedTouches[0]?.clientX??startX,dx=end-startX;startX=null;if(Math.abs(dx)>45){go(current+(dx<0?1:-1));auto()}},{passive:true});
+ viewport.addEventListener("mouseenter",()=>clearInterval(timer));viewport.addEventListener("mouseleave",auto);
+ auto()
 }
 function renderNav(){
  const box=$("#catalogNav");box.innerHTML="";
@@ -106,8 +136,8 @@ function render(){
  if(!list.length){box.innerHTML='<div class="empty">Todavía no hay productos cargados en esta sección.</div>';return}
  for(const p of list){
    const pv=vars.filter(v=>v.product_id===p.id),first=pv[0],wh=p.wholesale_price??p.price,el=document.createElement("article");el.className="card";el.dataset.v=first?.id||"";
-   el.innerHTML='<div class="pic"><img loading="lazy" src="'+esc(first?.image_url||p.main_image_url||"")+'" alt="'+esc(p.name)+'"><span class="zoomHint">Tocá para ampliar</span></div><div class="body"><h3>'+esc(p.name)+'</h3><div class="muted">'+esc(subs.find(s=>s.id===p.subcategory_id)?.name||cats.find(c=>c.id===p.category_id)?.name||"")+'</div>'+(pv.length?'<div class="variants">'+pv.map((v,i)=>'<button class="variant '+(i?"":"on")+'" data-id="'+v.id+'" data-img="'+esc(v.image_url||p.main_image_url||"")+'">'+esc(v.name)+'</button>').join("")+'</div>':"")+'<div class="priceBlock"><div class="retail">Minorista: '+money(p.price)+'</div><div class="wholesale">Mayorista: '+money(wh)+'</div><div class="smallNote">Precio mayorista desde 10 unidades dentro de esta categoría.</div></div><button class="btn violet add">Agregar al carrito</button></div>';
-   const img=el.querySelector(".pic img");el.querySelector(".pic").onclick=()=>openZoom(img.src);
+   el.innerHTML='<div class="pic"><img loading="lazy" src="'+esc(first?.image_url||p.main_image_url||"")+'" alt="'+esc(p.name)+'"><span class="zoomHint">Ver producto</span></div><div class="body"><h3>'+esc(p.name)+'</h3><div class="muted">'+esc(subs.find(s=>s.id===p.subcategory_id)?.name||cats.find(c=>c.id===p.category_id)?.name||"")+'</div>'+(pv.length?'<div class="variants">'+pv.map((v,i)=>'<button class="variant '+(i?"":"on")+'" data-id="'+v.id+'" data-img="'+esc(v.image_url||p.main_image_url||"")+'">'+esc(v.name)+'</button>').join("")+'</div>':"")+'<div class="priceBlock"><div class="retail">Minorista: '+money(p.price)+'</div><div class="wholesale">Mayorista: '+money(wh)+'</div><div class="smallNote">Precio mayorista desde 10 unidades dentro de esta categoría.</div></div><button class="btn violet add">Agregar al carrito</button></div>';
+   const img=el.querySelector(".pic img");el.querySelector(".pic").onclick=()=>location.href="/producto.html?id="+encodeURIComponent(p.id);
    el.querySelectorAll(".variant").forEach(b=>b.onclick=e=>{e.stopPropagation();el.querySelectorAll(".variant").forEach(x=>x.classList.remove("on"));b.classList.add("on");el.dataset.v=b.dataset.id;img.src=b.dataset.img});
    el.querySelector(".add").onclick=()=>add(p.id,el.dataset.v);box.appendChild(el)
  }
