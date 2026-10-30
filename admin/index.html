@@ -27,6 +27,25 @@
 </section>
 
 
+<section class="panel">
+  <div class="row"><div><h2>Banners y promociones</h2><p class="muted">Administrá las imágenes que se mueven en la portada. Podés vincular cada banner a un producto para que al tocarlo se abra su ficha.</p></div></div>
+  <form id="bannerForm">
+    <input id="bannerId" type="hidden">
+    <div class="grid2">
+      <label>Nombre interno de la promo<input id="bannerTitle" placeholder="Ej.: Promo Tornado"></label>
+      <label>Producto al que lleva<select id="bannerProduct"><option value="">Sin enlace a producto</option></select></label>
+    </div>
+    <div class="grid2">
+      <label>Orden<input id="bannerOrder" type="number" min="1" value="1"></label>
+      <label class="check bannerCheck"><input id="bannerActive" type="checkbox" checked> Mostrar este banner</label>
+    </div>
+    <div id="bannerCurrent" class="currentImage hidden"><span>Imagen actual</span><img id="bannerCurrentImg" alt="Banner actual"></div>
+    <label>Imagen del banner <span class="muted">(recomendado: 1916 × 821 px)</span><input id="bannerFile" type="file" accept="image/*"></label>
+    <div class="inline"><button class="btn violet">Guardar banner</button><button id="bannerClear" type="button" class="btn">Limpiar</button></div>
+  </form>
+  <div id="bannerList" class="bannerAdminList"></div>
+</section>
+
 <section class="panel"><h2>Logo de la web</h2><div class="logoBox"><img id="logoPreview" class="logoPreview" alt="Logo actual"><div><p class="muted">Podés cambiar el logo cuando quieras. Acepta JPG, PNG o WEBP y lo comprime automáticamente antes de guardarlo.</p><form id="logoForm"><label>Elegir nuevo logo<input id="logoFile" type="file" accept="image/jpeg,image/png,image/webp,image/*" required></label><button class="btn violet">Guardar nuevo logo</button></form><p id="logoMsg" class="ok"></p></div></div></section>
 
 <div class="grid2"><section class="panel"><h2>Instagram</h2><form id="igForm"><label>Perfil o enlace<input id="igInput"></label><button class="btn violet">Guardar Instagram</button></form></section>
