@@ -13,3 +13,13 @@
 
 .subcatEditRow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 10px;margin:6px 0;border:1px solid #34343f;border-radius:11px;background:#0d0d12}.subcatEditInfo{display:grid;gap:3px;min-width:0}.subcatEditInfo b{overflow:hidden;text-overflow:ellipsis}.subcatEditInfo span{font-size:11px;color:#8f8e99}.editSubcat{padding:8px 10px;font-size:12px;flex:0 0 auto}
 @media(max-width:600px){.subcatEditRow{align-items:stretch;flex-direction:column}.editSubcat{width:100%}}
+
+
+/* Gestión de banners */
+.bannerCheck{align-self:end;margin-bottom:12px;padding:10px 12px;border:1px solid #353541;border-radius:9px;background:#0c0c11}
+.bannerAdminList{display:grid;gap:10px;margin-top:18px}
+.bannerAdminRow{display:grid;grid-template-columns:180px 1fr auto;gap:12px;align-items:center;padding:10px;border:1px solid #34343f;border-radius:12px;background:#0d0d12}
+.bannerAdminRow>img{width:180px;aspect-ratio:1916/821;object-fit:cover;border-radius:9px;border:1px solid #2e2e38;background:#08080b}
+.bannerAdminInfo{display:grid;gap:4px;min-width:0}.bannerAdminInfo b{font-size:14px}.bannerAdminInfo span{font-size:11px;color:#9b9aa7;overflow:hidden;text-overflow:ellipsis}
+.bannerAdminActions{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}.delBanner{border-color:#6b2a35;color:#fecaca}
+@media(max-width:720px){.bannerAdminRow{grid-template-columns:110px 1fr}.bannerAdminRow>img{width:110px}.bannerAdminActions{grid-column:1/-1;justify-content:stretch}.bannerAdminActions .btn{flex:1}.bannerCheck{align-self:auto}}
