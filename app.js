@@ -64,14 +64,15 @@ function updateHero(){
  }
 }
 async function load(){
- const[a,b,c,d,e]=await Promise.all([
+ const[a,b,c,d,e,f]=await Promise.all([
    sb.from("categories").select("*").eq("active",true).order("sort_order"),
    sb.from("subcategories").select("*").eq("active",true).order("sort_order"),
    sb.from("products").select("*").eq("active",true).order("sort_order"),
    sb.from("product_variants").select("*").eq("active",true).order("sort_order"),
-   sb.from("site_settings").select("*")
+   sb.from("site_settings").select("*"),
+   sb.from("banner_slides").select("*").eq("active",true).order("sort_order")
  ]);
- cats=a.data||[];subs=b.data||[];prods=c.data||[];vars=d.data||[];
+ cats=a.data||[];subs=b.data||[];prods=c.data||[];vars=d.data||[];banners=f.data||[];
  const s=e.data||[];
  $("#ig").href=norm(s.find(x=>x.key==="instagram_url")?.value);
  setLogo(s.find(x=>x.key==="logo_url")?.value||"");
