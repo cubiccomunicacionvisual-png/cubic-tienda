@@ -1,25 +1,26 @@
 import{createClient}from"https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 const sb=createClient("https://bbwbaohkbxsjumkfknqn.supabase.co","sb_publishable_5mdYxS9nGFb3DoxbdsdiAg_dOCOnTP5"),$=s=>document.querySelector(s);
-let user,cats=[],subs=[],prods=[],variants=[],draft=[],removedVariantIds=[],openBrands=new Set(),openMainCats=new Set();
+let user,cats=[],subs=[],prods=[],variants=[],banners=[],draft=[],removedVariantIds=[],openBrands=new Set(),openMainCats=new Set();
 const money=n=>new Intl.NumberFormat("es-AR",{style:"currency",currency:"ARS",maximumFractionDigits:0}).format(Number(n)||0);
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
 const catLabel=c=>c?.slug==="graficas-de-motos"?"Gráficas simil originales":c?.name||"";
 async function canvasBlob(c,q){return new Promise((r,j)=>c.toBlob(b=>b?r(b):j(new Error("No se pudo optimizar la imagen.")),"image/webp",q))}
 async function optimizeImage(f,max=1800,q=.84){if(!f)return null;const b=await createImageBitmap(f),s=Math.min(1,max/Math.max(b.width,b.height)),w=Math.max(1,Math.round(b.width*s)),h=Math.max(1,Math.round(b.height*s)),c=document.createElement("canvas");c.width=w;c.height=h;c.getContext("2d",{alpha:true}).drawImage(b,0,0,w,h);const x=await canvasBlob(c,q);b.close?.();return new File([x],f.name.replace(/\.[^.]+$/,"")+".webp",{type:"image/webp"})}
-async function upload(f,prefix=""){if(!f)return null;const o=await optimizeImage(f,prefix==="logo-"?700:1800,prefix==="logo-"?.9:.84),p=user.id+"/"+prefix+crypto.randomUUID()+".webp",r=await sb.storage.from("product-images").upload(p,o,{cacheControl:"31536000",contentType:"image/webp"});if(r.error)throw r.error;return sb.storage.from("product-images").getPublicUrl(p).data.publicUrl}
+async function upload(f,prefix=""){if(!f)return null;const isLogo=prefix==="logo-",isBanner=prefix==="banner-",o=await optimizeImage(f,isLogo?700:(isBanner?2200:1800),isLogo?.9:(isBanner?.88:.84)),p=user.id+"/"+prefix+crypto.randomUUID()+".webp",r=await sb.storage.from("product-images").upload(p,o,{cacheControl:"31536000",contentType:"image/webp"});if(r.error)throw r.error;return sb.storage.from("product-images").getPublicUrl(p).data.publicUrl}
 async function start(){const s=(await sb.auth.getSession()).data.session;user=s?.user;if(!user)return;const a=await sb.from("admin_users").select("user_id").eq("user_id",user.id).maybeSingle();if(!a.data){$("#loginBox").classList.add("hidden");$("#pending").classList.remove("hidden");return}$("#loginBox").classList.add("hidden");$("#adm").classList.remove("hidden");await load()}
 $("#login").onsubmit=async e=>{e.preventDefault();const r=await sb.auth.signInWithPassword({email:$("#email").value,password:$("#pass").value});$("#msg").textContent=r.error?r.error.message:"";$("#msg").className=r.error?"danger":"";if(!r.error)start()};
 $("#logout").onclick=async()=>{await sb.auth.signOut();location.reload()};
 
 async function load(){
- const[a,b,c,d,e]=await Promise.all([
+ const[a,b,c,d,e,f]=await Promise.all([
    sb.from("categories").select("*").order("sort_order"),
    sb.from("subcategories").select("*").order("sort_order"),
    sb.from("products").select("*").order("created_at",{ascending:false}),
    sb.from("product_variants").select("*").order("sort_order"),
-   sb.from("site_settings").select("*")
+   sb.from("site_settings").select("*"),
+   sb.from("banner_slides").select("*").order("sort_order")
  ]);
- cats=a.data||[];subs=b.data||[];prods=c.data||[];variants=d.data||[];
+ cats=a.data||[];subs=b.data||[];prods=c.data||[];variants=d.data||[];banners=f.data||[];
  const settings=e.data||[];
  $("#igInput").value=settings.find(x=>x.key==="instagram_url")?.value||"";
  const logo=settings.find(x=>x.key==="logo_url")?.value||"";
@@ -27,7 +28,7 @@ async function load(){
  const options=cats.map(c=>'<option value="'+c.id+'">'+esc(catLabel(c))+'</option>').join("");
  $("#subcatParent").innerHTML=options;$("#pcat").innerHTML=options;
  if(!$("#pcat").value&&cats[0])$("#pcat").value=cats[0].id;
- updateProductSubcats();renderSubcatList();renderProducts();loadAnalytics()
+ updateProductSubcats();renderSubcatList();renderProducts();renderBannerAdmin();loadAnalytics()
 }
 
 function formatDay(iso){
@@ -74,6 +75,53 @@ document.querySelectorAll(".copyTrack").forEach(b=>b.onclick=async()=>{
    const old=b.textContent;b.textContent="Copiado ✓";setTimeout(()=>b.textContent=old,1200)
  }catch{prompt("Copiá este enlace:",link)}
 });
+
+function clearBannerForm(){
+ $("#bannerForm").reset();$("#bannerId").value="";$("#bannerActive").checked=true;$("#bannerOrder").value=(banners.length?Math.max(...banners.map(x=>Number(x.sort_order)||0))+1:1);
+ $("#bannerCurrent").classList.add("hidden");$("#bannerCurrentImg").src=""
+}
+function renderBannerAdmin(){
+ const select=$("#bannerProduct");
+ select.innerHTML='<option value="">Sin enlace a producto</option>'+prods.map(p=>'<option value="'+p.id+'">'+esc(p.name)+'</option>').join("");
+ const list=$("#bannerList");list.innerHTML="";
+ if(!banners.length){list.innerHTML='<p class="muted">Todavía no hay banners cargados.</p>';clearBannerForm();return}
+ banners.forEach(b=>{
+   const p=prods.find(x=>x.id===b.product_id),row=document.createElement("div");
+   row.className="bannerAdminRow";
+   row.innerHTML='<img src="'+esc(b.image_url)+'" alt=""><div class="bannerAdminInfo"><b>'+esc(b.title||"Banner sin nombre")+'</b><span>Orden '+(b.sort_order??0)+' · '+(b.active?"Visible":"Oculto")+'</span><span>'+(p?("Abre: "+esc(p.name)):"Sin enlace a producto")+'</span></div><div class="bannerAdminActions"><button type="button" class="btn editBanner">Editar</button><button type="button" class="btn delBanner">Eliminar</button></div>';
+   row.querySelector(".editBanner").onclick=()=>editBanner(b);
+   row.querySelector(".delBanner").onclick=()=>deleteBanner(b);
+   list.appendChild(row)
+ });
+ if(!$("#bannerId").value)$("#bannerOrder").value=Math.max(...banners.map(x=>Number(x.sort_order)||0))+1
+}
+function editBanner(b){
+ $("#bannerId").value=b.id;$("#bannerTitle").value=b.title||"";$("#bannerProduct").value=b.product_id||"";$("#bannerOrder").value=b.sort_order??1;$("#bannerActive").checked=!!b.active;
+ $("#bannerCurrentImg").src=b.image_url;$("#bannerCurrent").classList.remove("hidden");$("#bannerFile").value="";
+ $("#bannerForm").scrollIntoView({behavior:"smooth",block:"center"})
+}
+async function deleteBanner(b){
+ if(!confirm("¿Eliminar este banner de la portada?"))return;
+ const r=await sb.from("banner_slides").delete().eq("id",b.id);
+ if(r.error)return alert(r.error.message);
+ clearBannerForm();await load()
+}
+$("#bannerClear").onclick=clearBannerForm;
+$("#bannerFile").onchange=e=>{const file=e.target.files[0];if(file){$("#bannerCurrentImg").src=URL.createObjectURL(file);$("#bannerCurrent").classList.remove("hidden");$("#bannerCurrent").querySelector("span").textContent="Nueva imagen seleccionada"}};
+$("#bannerForm").onsubmit=async e=>{
+ e.preventDefault();const button=e.submitter,old=button?.textContent;
+ try{
+   if(button){button.disabled=true;button.textContent="Guardando..."}
+   const id=$("#bannerId").value,current=banners.find(x=>x.id===id),file=$("#bannerFile").files[0];
+   let image=current?.image_url||"";
+   if(file)image=await upload(file,"banner-");
+   if(!image)throw new Error("Elegí una imagen para el banner.");
+   const data={title:$("#bannerTitle").value.trim(),image_url:image,product_id:$("#bannerProduct").value||null,sort_order:Number($("#bannerOrder").value)||1,active:$("#bannerActive").checked,updated_at:new Date().toISOString()};
+   const r=id?await sb.from("banner_slides").update(data).eq("id",id):await sb.from("banner_slides").insert(data);
+   if(r.error)throw r.error;
+   clearBannerForm();await load();alert("Banner guardado. La portada se actualiza automáticamente.")
+ }catch(err){alert(err.message||err)}finally{if(button){button.disabled=false;button.textContent=old||"Guardar banner"}}
+};
 
 $("#logoFile").onchange=e=>{const f=e.target.files[0];if(f)$("#logoPreview").src=URL.createObjectURL(f)};
 $("#logoForm").onsubmit=async e=>{e.preventDefault();const b=e.submitter,old=b.textContent;try{b.disabled=true;b.textContent="Comprimiendo y guardando...";const f=$("#logoFile").files[0],url=await upload(f,"logo-");const r=await sb.from("site_settings").upsert({key:"logo_url",value:url,updated_at:new Date().toISOString()});if(r.error)throw r.error;$("#logoPreview").src=url;$("#logoMsg").textContent="Logo actualizado. La tienda lo toma automáticamente.";$("#logoFile").value=""}catch(err){alert(err.message||err)}finally{b.disabled=false;b.textContent=old}};
