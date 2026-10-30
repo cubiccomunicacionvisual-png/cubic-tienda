@@ -82,7 +82,7 @@ function clearBannerForm(){
 }
 function renderBannerAdmin(){
  const select=$("#bannerProduct");
- select.innerHTML='<option value="">Sin enlace a producto</option>'+prods.map(p=>'<option value="'+p.id+'">'+esc(p.name)+'</option>').join("");
+ select.innerHTML='<option value="">Sin enlace a producto</option>'+prods.filter(p=>p.active).map(p=>'<option value="'+p.id+'">'+esc(p.name)+'</option>').join("");
  const list=$("#bannerList");list.innerHTML="";
  if(!banners.length){list.innerHTML='<p class="muted">Todavía no hay banners cargados.</p>';clearBannerForm();return}
  banners.forEach(b=>{
