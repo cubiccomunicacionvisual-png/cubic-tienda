@@ -3,7 +3,7 @@ const sb=createClient("https://bbwbaohkbxsjumkfknqn.supabase.co","sb_publishable
 const money=n=>new Intl.NumberFormat("es-AR",{style:"currency",currency:"ARS",maximumFractionDigits:0}).format(Number(n)||0);
 let product=null,variants=[],selectedVariant=null,quantity=1;
 $("#wa").href="https://wa.me/"+WA+"?text="+encodeURIComponent("Hola CUBIC, quería hacer una consulta.");
-function norm(v){v=(v||"").trim();if(!v)return"https://instagram.com/";if(v.startsWith("http"))return v;if(v.startsWith("@"))v=v.slice(1);return"https://instagram.com/"+v.replace(/^\\/+|\\/+$/g,"")}
+function norm(v){v=(v||"").trim();if(!v)return"https://instagram.com/";if(v.startsWith("http"))return v;if(v.startsWith("@"))v=v.slice(1);while(v.startsWith("/"))v=v.slice(1);while(v.endsWith("/"))v=v.slice(0,-1);return"https://instagram.com/"+v}
 function setLogo(url){const img=$("#siteLogo"),fb=$("#logoFallback");if(url){img.src=url;img.hidden=false;fb.hidden=true;img.onerror=()=>{img.hidden=true;fb.hidden=false}}}
 function imageFor(){return selectedVariant?.image_url||product?.main_image_url||""}
 function setImage(src){$("#productImg").src=src||"";$("#zoomImg").src=src||""}
