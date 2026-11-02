@@ -1,10 +1,13 @@
 import{createClient}from"https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 const sb=createClient("https://bbwbaohkbxsjumkfknqn.supabase.co","sb_publishable_5mdYxS9nGFb3DoxbdsdiAg_dOCOnTP5"),WA="5493743512413",$=s=>document.querySelector(s);
 const money=n=>new Intl.NumberFormat("es-AR",{style:"currency",currency:"ARS",maximumFractionDigits:0}).format(Number(n)||0);
+const CART_KEY="cubic_cart_v1";
 let product=null,variants=[],selectedVariant=null,quantity=1;
 $("#wa").href="https://wa.me/"+WA+"?text="+encodeURIComponent("Hola CUBIC, quería hacer una consulta.");
 function norm(v){v=(v||"").trim();if(!v)return"https://instagram.com/";if(v.startsWith("http"))return v;if(v.startsWith("@"))v=v.slice(1);while(v.startsWith("/"))v=v.slice(1);while(v.endsWith("/"))v=v.slice(0,-1);return"https://instagram.com/"+v}
 function setLogo(url){const img=$("#siteLogo"),fb=$("#logoFallback");if(url){img.src=url;img.hidden=false;fb.hidden=true;img.onerror=()=>{img.hidden=true;fb.hidden=false}}}
+function loadSavedCart(){try{const x=JSON.parse(localStorage.getItem(CART_KEY)||"[]");return Array.isArray(x)?x.filter(i=>i&&i.pid&&Number(i.n)>0).map(i=>({k:i.k||i.pid+"::"+(i.vid||""),pid:i.pid,vid:i.vid||"",n:Math.max(1,Number(i.n)||1)})):[]}catch{return[]}}
+function saveCart(cart){try{localStorage.setItem(CART_KEY,JSON.stringify(cart))}catch{}}
 function imageFor(){return selectedVariant?.image_url||product?.main_image_url||""}
 function setImage(src){$("#productImg").src=src||"";$("#zoomImg").src=src||""}
 function selectVariant(v){selectedVariant=v;setImage(imageFor());document.querySelectorAll("[data-variant]").forEach(x=>x.classList.toggle("on",x.dataset.variant===v.id));updateOrder()}
@@ -25,7 +28,7 @@ function updateOrder(){
  const lines=["Hola CUBIC, quiero consultar/pedir este producto:","",product.name];
  if(selectedVariant)lines.push("Variante: "+selectedVariant.name);
  lines.push("Cantidad: "+quantity,"Precio: "+money(unit)+" c/u","Total: "+money(unit*quantity));
- $("#orderBtn").href="https://wa.me/"+WA+"?text="+encodeURIComponent(lines.join("\n"))
+ $("#orderBtn").href="https://wa.me/"+WA+"?text="+encodeURIComponent(lines.join("\n"));$("#addCartBtn").textContent="Agregar "+quantity+" al carrito"
 }
 async function load(){
  const id=new URLSearchParams(location.search).get("id");
@@ -49,5 +52,15 @@ async function load(){
  setImage(product.main_image_url||variants[0]?.image_url||"");renderVariants();updateOrder()
 }
 $("#minus").onclick=()=>{quantity=Math.max(1,quantity-1);updateOrder()};$("#plus").onclick=()=>{quantity++;updateOrder()};
+$("#addCartBtn").onclick=()=>{
+ if(!product)return;
+ const vid=selectedVariant?.id||"",k=product.id+"::"+vid,cart=loadSavedCart(),existing=cart.find(i=>i.k===k);
+ if(existing)existing.n+=quantity;else cart.push({k,pid:product.id,vid,n:quantity});
+ saveCart(cart);
+ const b=$("#addCartBtn"),m=$("#cartSavedMsg"),total=cart.reduce((a,i)=>a+i.n,0);
+ b.classList.remove("added");void b.offsetWidth;b.classList.add("added");
+ m.textContent="✓ Guardado en el carrito · "+total+" unidad"+(total===1?"":"es")+" en total";
+ setTimeout(()=>b.classList.remove("added"),450)
+};
 $("#mainPic").onclick=()=>$("#lightbox").classList.add("open");$("#zoomClose").onclick=()=>$("#lightbox").classList.remove("open");$("#lightbox").onclick=e=>{if(e.target===$("#lightbox"))$("#lightbox").classList.remove("open")};
 load();
