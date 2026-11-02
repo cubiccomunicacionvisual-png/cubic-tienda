@@ -3,6 +3,8 @@ const sb=createClient("https://bbwbaohkbxsjumkfknqn.supabase.co","sb_publishable
 const CART_KEY="cubic_cart_v1";
 let cats=[],subs=[],prods=[],vars=[],banners=[],selectedCat=null,selectedSub=null,openCats=new Set(),cart=loadSavedCart();
 const money=n=>new Intl.NumberFormat("es-AR",{style:"currency",currency:"ARS",maximumFractionDigits:0}).format(Number(n)||0),esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])),qty=()=>cart.reduce((a,x)=>a+x.n,0),categoryQty=catId=>cart.reduce((a,i)=>{const p=prods.find(x=>x.id===i.pid);return a+(p?.category_id===catId?i.n:0)},0),isWholesaleFor=p=>!!p&&categoryQty(p.category_id)>=10,unitPrice=p=>Number(isWholesaleFor(p)?(p.wholesale_price??p.price):p.price)||0;
+function loadSavedCart(){try{const x=JSON.parse(localStorage.getItem(CART_KEY)||"[]");return Array.isArray(x)?x.filter(i=>i&&i.pid&&Number(i.n)>0).map(i=>({k:i.k||i.pid+"::"+(i.vid||""),pid:i.pid,vid:i.vid||"",n:Math.max(1,Number(i.n)||1)})):[]}catch{return[]}}
+function saveCart(){try{localStorage.setItem(CART_KEY,JSON.stringify(cart))}catch{}}
 $("#wa").href="https://wa.me/"+WA+"?text="+encodeURIComponent("Hola CUBIC, quería hacer una consulta.");
 function norm(v){v=(v||"").trim();if(!v)return"https://instagram.com/";if(v.startsWith("http"))return v;if(v.startsWith("@"))v=v.slice(1);return"https://instagram.com/"+v.replace(/^\/+|\/+$/g,"")}
 function setLogo(url){const img=$("#siteLogo"),fb=$("#logoFallback");if(url){img.src=url;img.hidden=false;fb.hidden=true;img.onerror=()=>{img.hidden=true;fb.hidden=false}}else{img.hidden=true;fb.hidden=false}}
