@@ -1,6 +1,7 @@
 import{createClient}from"https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 const sb=createClient("https://bbwbaohkbxsjumkfknqn.supabase.co","sb_publishable_5mdYxS9nGFb3DoxbdsdiAg_dOCOnTP5"),WA="5493743512413",$=s=>document.querySelector(s);
-let cats=[],subs=[],prods=[],vars=[],banners=[],selectedCat=null,selectedSub=null,openCats=new Set(),cart=[];
+const CART_KEY="cubic_cart_v1";
+let cats=[],subs=[],prods=[],vars=[],banners=[],selectedCat=null,selectedSub=null,openCats=new Set(),cart=loadSavedCart();
 const money=n=>new Intl.NumberFormat("es-AR",{style:"currency",currency:"ARS",maximumFractionDigits:0}).format(Number(n)||0),esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])),qty=()=>cart.reduce((a,x)=>a+x.n,0),categoryQty=catId=>cart.reduce((a,i)=>{const p=prods.find(x=>x.id===i.pid);return a+(p?.category_id===catId?i.n:0)},0),isWholesaleFor=p=>!!p&&categoryQty(p.category_id)>=10,unitPrice=p=>Number(isWholesaleFor(p)?(p.wholesale_price??p.price):p.price)||0;
 $("#wa").href="https://wa.me/"+WA+"?text="+encodeURIComponent("Hola CUBIC, quería hacer una consulta.");
 function norm(v){v=(v||"").trim();if(!v)return"https://instagram.com/";if(v.startsWith("http"))return v;if(v.startsWith("@"))v=v.slice(1);return"https://instagram.com/"+v.replace(/^\/+|\/+$/g,"")}
@@ -73,6 +74,7 @@ async function load(){
    sb.from("banner_slides").select("*").eq("active",true).order("sort_order")
  ]);
  cats=a.data||[];subs=b.data||[];prods=c.data||[];vars=d.data||[];banners=f.data||[];
+ cart=cart.filter(i=>prods.some(p=>p.id===i.pid));saveCart();
  const s=e.data||[];
  $("#ig").href=norm(s.find(x=>x.key==="instagram_url")?.value);
  setLogo(s.find(x=>x.key==="logo_url")?.value||"");
@@ -143,7 +145,7 @@ function render(){
    el.querySelector(".add").onclick=()=>add(p.id,el.dataset.v);box.appendChild(el)
  }
 }
-function add(pid,vid){const k=pid+"::"+vid,x=cart.find(i=>i.k===k);x?x.n++:cart.push({k,pid,vid,n:1});cartRender();const f=$("#floatingCart");f.classList.remove("hasItems");void f.offsetWidth;f.classList.add("hasItems")}
+function add(pid,vid){const k=pid+"::"+vid,x=cart.find(i=>i.k===k);x?x.n++:cart.push({k,pid,vid,n:1});saveCart();cartRender();const f=$("#floatingCart");f.classList.remove("hasItems");void f.offsetWidth;f.classList.add("hasItems")}
 function cartRender(){
  const q=qty();
  $("#cc").textContent=q;$("#fcc").textContent=q;
@@ -169,7 +171,7 @@ function cartRender(){
    const p=prods.find(x=>x.id===i.pid),v=vars.find(x=>x.id===i.vid),wh=isWholesaleFor(p),u=unitPrice(p),d=document.createElement("div");
    d.className="cartItem";
    d.innerHTML='<img src="'+esc(v?.image_url||p?.main_image_url||"")+'"><div><b>'+esc(p?.name)+'</b><div class="muted">'+esc(v?.name||"")+'</div><div class="smallNote">'+(wh?"Mayorista":"Minorista")+': '+money(u)+' c/u</div><div class="qty"><button data-d="-1">−</button><span>'+i.n+'</span><button data-d="1">+</button></div></div><b>'+money(u*i.n)+'</b>';
-   d.querySelectorAll("[data-d]").forEach(b=>b.onclick=()=>{i.n+=Number(b.dataset.d);if(i.n<=0)cart=cart.filter(x=>x.k!==i.k);cartRender()});
+   d.querySelectorAll("[data-d]").forEach(b=>b.onclick=()=>{i.n+=Number(b.dataset.d);if(i.n<=0)cart=cart.filter(x=>x.k!==i.k);saveCart();cartRender()});
    box.appendChild(d)
  }
 
